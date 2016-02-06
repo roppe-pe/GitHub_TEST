@@ -41,9 +41,14 @@ phina.define('MainScene', {
     label.y = this.gridY.center();
     label.fill = 'black';
     
-    var myUnit = CharaBase(0, 0, 'roppe', '#f55').addChildTo(this);
+    this.myUnit = RoppeChara(200, 200).addChildTo(this);
+    this.myUnit.setPosition(200, 200);
     
   },
+  
+  update : function(app){
+    this.myUnit.update();
+  }
 });
 
 
@@ -72,7 +77,9 @@ phina.define('CharaBase', {
     this.hp = this.maxHp; //現在ヒットポイント
     this.sp = this.maxSp; //現在ショットポイント
     this.mp = this.maxMp; //現在ムーブポイント
-  
+    
+    this.deathFlag = false;
+    this.update();
   },
   
   update : function(){
@@ -93,7 +100,7 @@ phina.define('CharaBase', {
     }
     if(this.hp <= 0){
       //死亡
-      this.remove();
+      this.death();
     }
     
     //SP系
@@ -111,6 +118,13 @@ phina.define('CharaBase', {
     }
     if(this.maxMp > this.mp){
       this.mp++;
+    }
+  },
+  
+  //死亡処理
+  death : function(){
+    if(this.deathFlag === true){
+      this.remove();
     }
   },
   
@@ -172,6 +186,7 @@ CharaBase.prototype.moveCharaBy = function(x, y, currentMp){
     }else{
       this.x += x;
       this.y += y; 
+      this.mp -= 1;
     }
     
 };
@@ -253,6 +268,11 @@ Bullet.prototype.moveBulletBy = function(x, y){
 
 //----------共通関数----------
 CMN.func = {
+  //ランダム整数を返す(min <= x <= max)
+  randInt : function(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+  
   
   
 };
