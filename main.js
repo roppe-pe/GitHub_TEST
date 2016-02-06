@@ -257,6 +257,102 @@ CMN.func = {
   
 };
 
+//--------------------------------------------
+// ■ 汎用バー
+//--------------------------------------------
+// ◆ methods
+//  setValue(value):
+//    バーの現在値をセットする
+//    numeric value:現在値にセットする値
+//--------------------------------------------
+// ◆ params
+//  int x      : 描画先X座標（左上）
+//  int y      : 描画先Y座標（左上）
+//  int width  : バーの幅
+//  int height : バーの高さ
+//
+//  color color           : バーの色
+//  color backgroundColor : バーの背景色
+//  numeric nowValue : 現在値
+//  numeric maxValue : 最大値
+//--------------------------------------------
+// ◇ 使用例
+// this.bar1 = new Bar(this.gridX.center()-200, this.gridY.center(), 450, 10, '#F52','#222', 100, 100).addChildTo(this);
+// this.bar1.setValue(60);
+//--------------------------------------------
+phina.define('Bar', {
+  superClass: 'RectangleShape',
+  
+  //初期化
+  init: function(x, y, width, height, color, backgroundColor, nowValue, maxValue) {
+    this.superInit({
+      width : width,
+      height : height,
+      fill : backgroundColor,
+    });
+    
+    //計算がめんどいので中央座標の位置を保持しておく
+    this.x = x + width / 2;  //X座標（中央）
+    this.y = y + height / 2; //Y座標（中央）
+    //this._x = x;             //X座標（左上）
+    //this._y = y;             //Y座標（左上）
+    
+    this.nowValue = nowValue; //バーの現在値
+    this.maxValue = maxValue; //バーの最大値
+    //this.prvValue = nowValue; //nowValueの前回の値
+    
+    this.PADDING = 4; //内側の長方形(現在値バー)の余白
+    this.nowValueRectangleShape = RectangleShape({
+      width  : this.width - this.PADDING,
+      height : this.height - this.PADDING,
+      fill : color,
+      stroke: backgroundColor,
+      strokeWidth: 0,
+      }).addChildTo(this);
+    this.nowValueRectangleShape.setPosition(0, 0);
+    
+    //（テスト）値チェック
+    // TODO : 本番時 要消去
+    this.testLabel = Label("" + this.nowValue + " / " + this.maxValue).addChildTo(this);
+    this.testLabel.fill = '#FFF';
+    
+  },
+
+  update: function(app){
+    var rate = this.nowValue / this.maxValue;
+    
+    this.nowValueRectangleShape.width = rate * (this.width - this.PADDING);
+    this.nowValueRectangleShape.x = (this.nowValueRectangleShape.width - this.width) / 2 + 2; //(最後の+2は調整値です...)
+  },
+  
+  //値をセットするときはこの関数を使うこと！
+  setValue: function(value){
+    //前回値を覚えておく
+    //this.prvValue = this.nowValue;
+    
+    value = this.checkMaxMin(value);  //valueは0~maxValueの範囲内にする 
+    this.nowValue = value;
+    
+
+    //（テスト）値チェック
+    // TODO : 本番時 要消去
+    this.testLabel.text = "" + this.nowValue + " / " + this.maxValue;
+  },
+  
+  checkMaxMin: function(value){
+    if(value > this.maxValue){
+      value = this.maxValue;
+    }else if(value < 0){
+      value = 0;
+    }
+    return value;
+  },
+  
+});
+//--------------------------------------------
+// □ 汎用バー ここまで
+//--------------------------------------------
+
 
 //----------ゲーム開始処理----------
 
