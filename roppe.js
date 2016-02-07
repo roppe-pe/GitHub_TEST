@@ -7,18 +7,15 @@ phina.define('RoppeChara', {
   init : function(x, y){
     this.superInit({
       name : 'roppe',
-      color : '#f00',
-      move : function(){
-        if(this.mp > this.maxMp/2){
-          this.moveRandom();
-        }
-      },
-      
-      shot : function(){
-        
-      },
+      color : '#ff0',
     });
     
+  },
+  
+  move : function(){
+    if(this.mp > this.maxMp/2){
+      this.moveRandom();
+    }
   },
   
   moveRandom : function(){
@@ -31,7 +28,12 @@ phina.define('RoppeChara', {
          CMN.CHARA_STATUS.speed
          );
     this.moveCharaBy(moveX, moveY, this.mp);
-  }
+  },
+  
+  shot : function(){
+    
+  },
+  
 })
 
 

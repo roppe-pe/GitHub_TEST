@@ -9,8 +9,8 @@ var CMN = function(){};
 
 //定数
 CMN = {
-  SCREEN_WIDTH : 600,
-  SCREEN_HEIGHT : 400,
+  SCREEN_WIDTH : 800,
+  SCREEN_HEIGHT : 600,
   CHARA_STATUS : {
     size : 50,
     hp : 100,
@@ -23,6 +23,8 @@ CMN = {
     damage : 5,
     speed : 5,
   },
+  //メインシーン開始時からの経過フレーム数
+  age : 0,
 };
 
 phina.globalize();
@@ -34,12 +36,17 @@ phina.define('MainScene', {
   superClass: 'CanvasScene',
   
   init: function() {
-    this.superInit();
+    this.superInit({
+      width : CMN.SCREEN_WIDTH,
+      height : CMN.SCREEN_HEIGHT,
+    });
     this.backgroundColor = '#ccc';
     var label = Label('Hello, runstant!').addChildTo(this);
     label.x = this.gridX.center();
     label.y = this.gridY.center();
     label.fill = 'black';
+    
+    CMN.age = 0;
     
     this.myUnit = RoppeChara(200, 200).addChildTo(this);
     this.myUnit.setPosition(200, 200);
@@ -47,6 +54,8 @@ phina.define('MainScene', {
   },
   
   update : function(app){
+    CMN.age++;
+    console.log(CMN.age);
     this.myUnit.update();
   }
 });
@@ -58,17 +67,24 @@ phina.define('MainScene', {
 //キャラ基底クラス
 phina.define('CharaBase', {
   superClass : 'RectangleShape',
-  init : function(x, y, name, color){
+  init : function(options){
+    options = (options || {}).$safe({
+      x : 0,
+      y : 0,
+      name : 'NoName',
+      color : '#000',
+    });
     this.superInit({
       width : CMN.CHARA_STATUS.size,
       height : CMN.CHARA_STATUS.size,
-      fill : color,
+      strokeWidth : 0,
+      fill : options.color,
     });
     
-    this.name = name;
+    this.name = options.name;
     this.label = Label(this.name).addChildTo(this);
-    this.x = x;
-    this.y = y;
+    this.x = options.x;
+    this.y = options.y;
     
     //自機能力
     this.maxHp = 100; //MAXヒットポイント
@@ -384,6 +400,9 @@ phina.main(function() {
     width : CMN.SCREEN_WIDTH,
     height : CMN.SCREEN_HEIGHT,
   });
+  
+  //FPS表示
+  app.enableStats();
   
   // ↓？
   // document.body.appendChild(app.domElement);
