@@ -6,6 +6,8 @@ phina.define('RoppeChara', {
   superClass : 'CharaBase',
   init : function(x, y){
     this.superInit({
+      x : x,
+      y : y,
       name : 'roppe',
       color : '#ff0',
     });
@@ -20,12 +22,12 @@ phina.define('RoppeChara', {
   
   moveRandom : function(){
     var moveX = CMN.func.randInt(
-       - CMN.CHARA_STATUS.speed, 
-         CMN.CHARA_STATUS.speed
+       - PRM.CHARA_STATUS.speed, 
+         PRM.CHARA_STATUS.speed
          );
     var moveY = CMN.func.randInt(
-       - CMN.CHARA_STATUS.speed, 
-         CMN.CHARA_STATUS.speed
+       - PRM.CHARA_STATUS.speed, 
+         PRM.CHARA_STATUS.speed
          );
     this.moveCharaBy(moveX, moveY, this.mp);
   },
@@ -34,7 +36,7 @@ phina.define('RoppeChara', {
     
   },
   
-})
+});
 
 
 
