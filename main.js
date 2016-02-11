@@ -29,7 +29,7 @@ CFG = {
   STATUS_FIELD_HEIGHT : 150,
   
   //ゲーム終了時間(秒)
-  TIME_LIMIT : 3,
+  TIME_LIMIT : 5,
   //音量
   
   //アイテム使用可否フラグ？
@@ -44,7 +44,7 @@ PRM = {
     hp : 100,
     sp : 100,
     mp : 100,
-    speed : 5,
+    speed : 10,
   },
   BULLET_STATUS : {
     size : 10,
@@ -61,7 +61,6 @@ phina.globalize();
 
 //----------ゲーム開始処理----------
 
-//GameAppのコンストラクタに連想配列形式でパラメータを与える
 phina.main(function() {
   var app = GameApp({
     //最初に読み込むシーンにTitleSceneを指定
@@ -118,24 +117,25 @@ phina.define('MainScene', {
     
     this.createChara();
     this.createStatusField();
-    
   },
   
   update : function(app){
     CMN.age++;
-    this.timeLabel.text = 'Time Limit : ' + Math.floor(CMN.age / 30);
+    this.timeLabel.text = 'Time Limit : ' + (CFG.TIME_LIMIT - Math.floor(CMN.age / 30));
     //test
     CMN.charaAry[0].hp--;
-    CMN.charaAry[1].hp--;
+    CMN.charaAry[1].hp = 50;
+    // CMN.charaAry[1].hp--;
+    
     // for(var i = 0; i < 3; i++){
     //   CMN.charaAry[i].update();
     // }
     
-    this.gameEnd(app);
+    this.gameEnd();
     
   },
   
-  gameEnd : function(app){
+  gameEnd : function(){
     var gameEndFlag = false;
     var liveCount = 3;
     
@@ -154,13 +154,19 @@ phina.define('MainScene', {
     }
     
     if(gameEndFlag === true){
-      // #各キャラの残りHPを引数にする
-      // app.replaceScene(EndScene(CMN.charaAry));
-      this.exit({
-        score : CMN.charaAry[0].hp,
-        message : '順位',
-      });
+      //残りHPが最も多いキャラが勝利
+      var charaHp = [];
+      for(var i = 0; i < 3; i++){
+        charaHp.push([CMN.charaAry[i].name, CMN.charaAry[i].hp]);
+      }
+      charaHp.sort(function(x, y){
+          return(x - y);
+      })
       
+      this.exit({
+        score : charaHp[2][0],
+        message : 'WIN',
+      });
     }
     
   },
@@ -199,7 +205,7 @@ phina.define('MainScene', {
       charaNo[1] 
     ).addChildTo(this);
     
-    CMN.charaAry[charaNo[2]] = RoppeChara(
+    CMN.charaAry[charaNo[2]] = Roppe3Chara(
       CMN.func.randInt(
         PRM.CHARA_STATUS.size / 2, 
         CFG.SCREEN_WIDTH - PRM.CHARA_STATUS.size / 2
@@ -226,39 +232,11 @@ phina.define('MainScene', {
 
 
 
-//エンドシーン
-// phina.define('EndScene', {
-//   superClass : 'phina.game.ResultScene',
-//   // #各キャラの残りHPを引数に
-//   init : function(charaAry){
-//     this.superInit({
-//       title : '順位',
-//       backgroundColor : '#973',
-//       width : CFG.SCREEN_WIDTH,
-//       height : CFG.SCREEN_HEIGHT,
-//     });
-    
-//     var label = Label(charaAry[0].hp).addChildTo(this);
-//     label.x = this.gridX.center();
-//     label.y = this.gridY.center();
-//     label.fill = 'black';
-    
-//   },
-  
-//   onnextscene : function(e){
-//     e.target.app.replaceScene(TitleScene());
-//   },
-  
-// });
-
-
-
 
 
 //----------画面構成要素----------
 
 //ステータス領域
-// #作成中 grid使うか？
 phina.define('CharaStatus', {
   superClass : 'RectangleShape',
   init : function(x, y, width, height, charaAry){
