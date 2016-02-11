@@ -12,10 +12,10 @@ var PRM = function(){};
 CMN = {
   //メインシーン開始時からの経過フレーム数
   age : 0,
-  //キャラ配列
-  
-  //弾配列
-  
+  //キャラ配列[キャラ番号]
+  charaAry : [],
+  //弾配列[キャラ番号][弾番号]
+  bulletAry : []
   //アイテム配列？
   
   
@@ -25,25 +25,12 @@ CMN = {
 CFG = {
   SCREEN_WIDTH : 800,
   SCREEN_HEIGHT : 600,
-  STATUS_FIELD_WIDTH : CFG.SCREEN_WIDTH,
-  STATUS_FIELD_HEIGHT : 100,
-  STATUS_FIELD : {
-    LEFT : 0,
-    RIGHT : CFG.STATUS_FIELD_WIDTH,
-    TOP : 0,
-    BOTTOM :CFG.STATUS_FIELD_HEIGHT,
-  },
-  BATTLE_FIELD_WIDTH : CFG.SCREEN_WIDTH,
-  BATTLE_FIELD_HEIGHT : CFG.SCREEN_HEIGHT - CFG.STATUS_FIELD_HEIGHT,
-  BATTLE_FIELD : {
-    LEFT : 0,
-    RIGHT : CFG.BATTLE_FIELD_WIDTH,
-    TOP : 0,
-    BOTTOM :CFG.SCREEN_HEIGHT,
-  },
-  //音量
+  STATUS_FIELD_WIDTH : 800,
+  STATUS_FIELD_HEIGHT : 150,
   
-  //プレイヤー人数
+  //ゲーム終了時間(秒)
+  TIME_LIMIT : 3,
+  //音量
   
   //アイテム使用可否フラグ？
   
@@ -64,8 +51,6 @@ PRM = {
     damage : 5,
     speed : 5,
   },
-  //ゲーム終了時間
-  
   
 };
 
@@ -97,7 +82,17 @@ phina.main(function() {
 //----------シーン----------
 
 //タイトルシーン
-
+phina.define('TitleScene', {
+  superClass : 'phina.game.TitleScene',
+  init : function(){
+    this.superInit({
+      title : 'RoboCon',
+      backgroundColor : '#666',
+      width : CFG.SCREEN_WIDTH,
+      height : CFG.SCREEN_HEIGHT,
+    });
+  },
+});
 
 
 //メインシーン
@@ -110,32 +105,151 @@ phina.define('MainScene', {
       height : CFG.SCREEN_HEIGHT,
     });
     this.backgroundColor = '#ccc';
-    var label = Label('Hello, runstant!').addChildTo(this);
-    label.x = this.gridX.center();
-    label.y = this.gridY.center();
-    label.fill = 'black';
-    
     
     //経過時間初期化
     CMN.age = 0;
     
-    this.myUnit = RoppeChara(200, 200).addChildTo(this);
+    this.timeLabel = phina.display.Label({
+      text : '',
+      fill : 'black',
+      alpha : 0.5,
+      fontSize : 30,
+    }).setPosition(CFG.SCREEN_WIDTH - 200, CFG.STATUS_FIELD_HEIGHT + 50).addChildTo(this);
     
-    this.bar1 = new Bar(this.gridX.center()-200, this.gridY.center(), 150, 20, '#F52','#222', 100, 100).addChildTo(this);
-this.bar1.setValue(60);
+    this.createChara();
+    this.createStatusField();
+    
   },
   
   update : function(app){
     CMN.age++;
-    console.log(CMN.age);
-    this.myUnit.update();
+    this.timeLabel.text = 'Time Limit : ' + Math.floor(CMN.age / 30);
+    //test
+    CMN.charaAry[0].hp--;
+    CMN.charaAry[1].hp--;
+    // for(var i = 0; i < 3; i++){
+    //   CMN.charaAry[i].update();
+    // }
+    
+    this.gameEnd(app);
+    
   },
+  
+  gameEnd : function(app){
+    var gameEndFlag = false;
+    var liveCount = 3;
+    
+    for(var i = 0; i < 3; i++){
+      if(CMN.charaAry[i].deathFlag === true){
+        liveCount--;
+      }
+    }
+    //生き残りが1人以下
+    if(liveCount <= 1){
+      gameEndFlag = true;
+    }
+    //タイムアップ
+    if(Math.floor(CMN.age / 30) > CFG.TIME_LIMIT){
+      gameEndFlag = true;
+    }
+    
+    if(gameEndFlag === true){
+      // #各キャラの残りHPを引数にする
+      // app.replaceScene(EndScene(CMN.charaAry));
+      this.exit({
+        score : CMN.charaAry[0].hp,
+        message : '順位',
+      });
+      
+    }
+    
+  },
+  
+  createChara : function(){
+    //キャラNoのシャッフル
+    for(var i = 0; i < 3; i++){
+      var charaNo = [0, 1, 2];
+      var r = CMN.func.randInt(0, 2);
+      var temp = charaNo[i];
+      charaNo[i] = charaNo[r];
+      charaNo[r] = temp;
+    }
+    //ランダム位置にキャラ生成
+    CMN.charaAry[charaNo[0]] = RoppeChara(
+      CMN.func.randInt(
+        PRM.CHARA_STATUS.size / 2, 
+        CFG.SCREEN_WIDTH - PRM.CHARA_STATUS.size / 2
+      ),
+      CMN.func.randInt(
+        CFG.STATUS_FIELD_HEIGHT + PRM.CHARA_STATUS.size / 2, 
+        CFG.SCREEN_HEIGHT - PRM.CHARA_STATUS.size / 2
+      ), 
+      charaNo[0] 
+    ).addChildTo(this);
+    
+    CMN.charaAry[charaNo[1]] = Roppe2Chara(
+      CMN.func.randInt(
+        PRM.CHARA_STATUS.size / 2, 
+        CFG.SCREEN_WIDTH - PRM.CHARA_STATUS.size / 2
+      ),
+      CMN.func.randInt(
+        CFG.STATUS_FIELD_HEIGHT + PRM.CHARA_STATUS.size / 2, 
+        CFG.SCREEN_HEIGHT - PRM.CHARA_STATUS.size / 2
+      ), 
+      charaNo[1] 
+    ).addChildTo(this);
+    
+    CMN.charaAry[charaNo[2]] = RoppeChara(
+      CMN.func.randInt(
+        PRM.CHARA_STATUS.size / 2, 
+        CFG.SCREEN_WIDTH - PRM.CHARA_STATUS.size / 2
+      ),
+      CMN.func.randInt(
+        CFG.STATUS_FIELD_HEIGHT + PRM.CHARA_STATUS.size / 2, 
+        CFG.SCREEN_HEIGHT - PRM.CHARA_STATUS.size / 2
+      ), 
+      charaNo[2] 
+    ).addChildTo(this);
+    
+  },
+  
+  createStatusField : function(){
+    var statusField = [];
+    for(var i = 0; i < 3; i++){
+      statusField[i] = CharaStatus(i * CFG.STATUS_FIELD_WIDTH / 3, 0, CFG.STATUS_FIELD_WIDTH / 3, CFG.STATUS_FIELD_HEIGHT, CMN.charaAry[i]).addChildTo(this);
+    }
+    
+    
+  },
+  
 });
 
 
 
 //エンドシーン
-
+// phina.define('EndScene', {
+//   superClass : 'phina.game.ResultScene',
+//   // #各キャラの残りHPを引数に
+//   init : function(charaAry){
+//     this.superInit({
+//       title : '順位',
+//       backgroundColor : '#973',
+//       width : CFG.SCREEN_WIDTH,
+//       height : CFG.SCREEN_HEIGHT,
+//     });
+    
+//     var label = Label(charaAry[0].hp).addChildTo(this);
+//     label.x = this.gridX.center();
+//     label.y = this.gridY.center();
+//     label.fill = 'black';
+    
+//   },
+  
+//   onnextscene : function(e){
+//     e.target.app.replaceScene(TitleScene());
+//   },
+  
+// });
 
 
 
@@ -147,12 +261,36 @@ this.bar1.setValue(60);
 // #作成中 grid使うか？
 phina.define('CharaStatus', {
   superClass : 'RectangleShape',
-  init : function(){
+  init : function(x, y, width, height, charaAry){
     this.superInit({
-      
+      width : width,
+      height : height,
+      fill : '#aaa'
     });
+    
+    this.x = x + this.width / 2;
+    this.y = y + this.height / 2;
+    this.charaAry = charaAry;
+    this.nameLabel = phina.display.Label({
+      text : this.charaAry.name,
+      fill : this.charaAry.color,
+      fontSize : 30,
+    }).setPosition(0, -this.height/2 + 30/2).addChildTo(this);
+    
+    var barWidth = this.width;
+    var barHeight = 30;
+    
+    this.hpBar = new Bar(-this.width/2, -this.height/2 + 30, barWidth, barHeight, '#F52','#222', this.charaAry.hp, this.charaAry.maxHp).addChildTo(this);
+    this.spBar = new Bar(-this.width/2, -this.height/2 + 70, barWidth, barHeight, '#2F5','#222', this.charaAry.sp, this.charaAry.maxSp).addChildTo(this);
+    this.mpBar = new Bar(-this.width/2, -this.height/2 + 110, barWidth, barHeight, '#52F','#222', this.charaAry.mp, this.charaAry.maxMp).addChildTo(this);
+    
   },
   
+  update : function(){
+    this.hpBar.setValue(this.charaAry.hp);
+    this.spBar.setValue(this.charaAry.sp);
+    this.mpBar.setValue(this.charaAry.mp);
+  },
   
 });
 
@@ -167,6 +305,7 @@ phina.define('CharaStatus', {
 
 //キャラをaddするレイヤー
 //弾をaddするレイヤー
+//ステータス、タイマーなどをAddするレイヤー
 
 //時間制限タイマー（タイマー表示とタイムアップ）
 //ゲーム終了画面（残りHPと順位表示）

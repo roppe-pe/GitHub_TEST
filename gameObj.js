@@ -11,6 +11,7 @@ phina.define('CharaBase', {
     options = (options || {}).$safe({
       x : 0,
       y : 0,
+      no : 9999,
       name : 'NoName',
       color : '#222',
     });
@@ -21,8 +22,12 @@ phina.define('CharaBase', {
       fill : options.color,
     });
     
+    this.no = options.no;
     this.name = options.name;
-    this.label = Label(this.name).addChildTo(this);
+    this.color = options.color;
+    // this.label = Label(this.name).addChildTo(this);
+    //test
+    this.label = Label(this.no).addChildTo(this);
     this.x = options.x;
     this.y = options.y;
     
@@ -41,6 +46,7 @@ phina.define('CharaBase', {
   update : function(){
     
     this.status();
+    this.death();
     this.move();
     this.shot();
     this.hitChara();
@@ -56,7 +62,7 @@ phina.define('CharaBase', {
     }
     if(this.hp <= 0){
       //死亡
-      this.death();
+      this.deathFlag = true;
     }
     
     //SP系
@@ -86,10 +92,10 @@ phina.define('CharaBase', {
   
   control : function(){
     //壁衝突による座標修正
-    var left = CFG.BATTLE_FIELD.LEFT + this.width / 2;
-    var right = CFG.BATTLE_FIELD.RIGHT - this.width / 2;
-    var top = CFG.BATTLE_FIELD.TOP + this.height / 2;
-    var bottom = CFG.BATTLE_FIELD.BOTTOM - this.height / 2;
+    var left = this.width / 2;
+    var right = CFG.SCREEN_WIDTH - this.width / 2;
+    var top = CFG.STATUS_FIELD_HEIGHT + this.height / 2;
+    var bottom = CFG.SCREEN_HEIGHT - this.height / 2;
     
     if(this.x < left){this.x = left;}
     if(this.x > right){this.x = right;}
@@ -177,10 +183,10 @@ phina.define('Bullet', {
   
   control : function(){
   //壁外に出たら弾削除
-  var left = CFG.BATTLE_FIELD.LEFT - this.width / 2;
-  var right = CFG.BATTLE_FIELD.RIGHT + this.height / 2;
-  var top = CFG.BATTLE_FIELD.TOP - this.height / 2;
-  var bottom = CFG.BATTLE_FIELD.BOTTOM + this.width / 2;
+  var left =  - this.width / 2;
+  var right = CFG.SCREEN_WIDTH + this.height / 2;
+  var top = CFG.STATUS_FIELD_HEIGHT - this.height / 2;
+  var bottom = CFG.SCREEN_HEIGHT + this.width / 2;
   
   if(this.x < left){this.remove();}
   if(this.x > right){this.remove();}
