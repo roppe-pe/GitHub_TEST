@@ -40,18 +40,22 @@ phina.define('CharaBase', {
     this.mp = this.maxMp; //現在ムーブポイント
     
     this.deathFlag = false;
+    // キャラ生成からの経過時間
+    this.age = 0;
     this.update();
   },
   
   update : function(){
-    
-    this.status();
-    this.death();
-    this.move();
-    this.shot();
-    this.hitChara();
-    this.control();
-    
+    this.age++;
+    //キャラ側でCMN.charaAry[0].xなどを参照した時にエラーになるのを防ぐため１フレ待つ
+    if(this.age > 1){
+      this.status();
+      this.death();
+      this.move();
+      this.shot();
+      this.hitChara();
+      this.control();
+    }
   },
   
   
